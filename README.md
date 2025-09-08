@@ -26,14 +26,13 @@ Built around simple, explicit Python scripts with a shared config and a unified 
 ```
 .
 ├── config.py                               # Central configuration (paths, options, patterns)
-├── config.example.py                        # Sanitized template for public release
 ├── skullstrip.py                            # Brain extraction + QC
 ├── reg.py                                   # T1/T2 → MNI (Rigid + Affine), saves transforms
 ├── postprocess_mni_mask_zscore_crop.py      # Warp masks, N4, masked Z-score, crop, viz
-├── structural_qc.py                          # (Optional) extra QC helpers
+├── structural_qc.py                          # extra QC helpers
 ├── generate_csv_metadata.py                  # Build CSVs with file paths + demographics
 ├── structure_resolver.py                     # Unified subject/session path discovery
-├── dicom_to_nifti.py                         # (Optional) DICOM → NIfTI helper
+├── dicom_to_nifti.py                         # (If needed) DICOM → NIfTI helper
 └── README.md                                 # You are here
 ```
 
