@@ -21,13 +21,9 @@ Author: Mohammad Abbasi (mabbasi@stanford.edu)
 
 import os
 import pandas as pd
-import glob
-from pathlib import Path
 import logging
 from typing import Dict, List, Tuple, Optional
 import sys
-from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
-from functools import partial
 import time
 import fnmatch
 from datetime import datetime
@@ -35,14 +31,16 @@ from datetime import datetime
 # Import configuration settings
 try:
     from config import *
+    from structure_resolver import discover
 except ImportError:
-    print("Error: Could not import config.py. Make sure it's in the same directory.")
+    print("Error: Could not import config.py or structure_resolver.py. Make sure they're in the same directory.")
     sys.exit(1)
 
 # Setup logging with timestamped log files in LOG_DIR (like other scripts)
 os.makedirs(LOG_DIR, exist_ok=True)
 timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-csv_log_level = getattr(logging, getattr(sys.modules['config'], 'CSV_LOG_LEVEL', 'INFO'))
+raw_lvl = getattr(sys.modules['config'], 'CSV_LOG_LEVEL', 'INFO')
+csv_log_level = getattr(logging, str(raw_lvl).upper(), logging.INFO)
 logging.basicConfig(
     level=csv_log_level,
     format=LOG_FORMAT,
@@ -53,16 +51,30 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+def _safe_exists(p: Optional[str]) -> bool:
+    """Check if a path exists safely."""
+    return bool(p) and os.path.exists(p)
+
+def _match_first(pattern: str, files: list) -> Optional[str]:
+    """Find first file matching pattern using fnmatch."""
+    matches = [f for f in files if fnmatch.fnmatch(f, pattern)]
+    return matches[0] if matches else None
+
+def _normalize_pid(x: str) -> str:
+    """Normalize participant ID to ensure sub- prefix."""
+    x = str(x).strip()
+    return x if x.startswith('sub-') else f"sub-{x}"
+
 class CSVMetadataGenerator:
     """
     Generate CSV metadata files for neuroimaging data.
     
     This class handles the complete workflow of CSV generation:
     1. Loading participant demographics from TSV files
-    2. Scanning directories for processed neuroimaging files
+    2. Scanning directories for processed neuroimaging files using structure_resolver
     3. Matching subjects with their corresponding files
     4. Encoding categorical variables (sex, handedness)
-    5. Generating structured CSV outputs
+    5. Generating structured CSV outputs (one row per session)
     """
     
     def __init__(self):
@@ -122,6 +134,10 @@ class CSVMetadataGenerator:
         # Create a copy to avoid modifying original data
         df = df.copy()
         
+        # Normalize participant_id to ensure sub- prefix
+        if 'participant_id' in df.columns:
+            df['participant_id'] = df['participant_id'].astype(str).map(_normalize_pid)
+        
         # Handle missing values by filling with standard missing data indicator
         df['age'] = df['age'].fillna(MISSING_DATA_VALUE)
         df['sex'] = df['sex'].fillna(MISSING_DATA_VALUE)
@@ -158,110 +174,80 @@ class CSVMetadataGenerator:
             logger.error(f"Error getting subject list: {str(e)}")
             raise
     
-    def find_processed_files_batch(self, subjects: List[str], modality: str) -> Dict[str, Dict[str, Optional[str]]]:
+    def find_processed_files_general(self, modality: str) -> List[Dict]:
         """
-        Find processed files for multiple subjects at once (optimized for performance).
-        
-        This method is optimized to reduce filesystem I/O by:
-        - Reading directory contents once per subject
-        - Using string matching instead of glob patterns
-        - Processing subjects in batches
+        Session-oriented: creates one row per (subject, session).
+        Uses discover(STRUCTURE, STAGE_ROOTS['registration']) for proper structure handling.
         
         Args:
-            subjects: List of subject IDs to process
             modality: Modality type ('T1' or 'T2')
             
         Returns:
-            Dict[str, Dict[str, Optional[str]]]: Nested dict mapping subject_id -> file_type -> file_path
+            List[Dict]: List of dictionaries, each representing a CSV row
         """
-        # Select appropriate file patterns based on modality
         if modality == 'T1':
             patterns = T1_PROCESSED_PATTERNS
         elif modality == 'T2':
             patterns = T2_PROCESSED_PATTERNS
         else:
             raise ValueError(f"Unknown modality: {modality}")
+
+        rows = []
+        # Find all (subject, session, path) triples from registration stage
+        triples = list(discover(STRUCTURE, STAGE_ROOTS["registration"], subjects=None, sessions=None))
         
-        results = {}
-        
-        # Process each subject in the batch
-        for subject_id in subjects:
-            file_paths = {}
-            
-            # Construct path to subject's anatomy directory (BIDS structure)
-            subject_anat_dir = os.path.join(self.registration_dir, subject_id, "ses-01", "anat")
-            
-            # Skip subjects without anatomy directory
-            if not os.path.exists(subject_anat_dir):
-                results[subject_id] = {key: None for key in patterns.keys()}
+        # Each triple is an anat folder (according to STRUCTURE)
+        for subj, sess, anat_dir in triples:
+            # Safety check
+            if not anat_dir or not os.path.isdir(anat_dir):
                 continue
-            
-            # Get all files in directory once (more efficient than multiple glob calls)
+
             try:
-                all_files = os.listdir(subject_anat_dir)
+                all_files = os.listdir(anat_dir)
             except OSError:
-                results[subject_id] = {key: None for key in patterns.keys()}
-                continue
-            
-            # Find files matching each pattern
-            for file_type, pattern in patterns.items():
-                # Use fnmatch for proper wildcard matching
-                matching_files = [f for f in all_files if fnmatch.fnmatch(f, pattern)]
-                
-                # Store the first matching file (or None if no match)
-                if matching_files:
-                    file_path = os.path.join(subject_anat_dir, matching_files[0])
-                    file_paths[file_type] = file_path
-                else:
-                    file_paths[file_type] = None
-            
-            results[subject_id] = file_paths
-        
-        return results
+                all_files = []
+
+            # Apply patterns to file list
+            found = {}
+            for key, pat in patterns.items():
+                fname = _match_first(pat, all_files)
+                fpath = os.path.join(anat_dir, fname) if fname else None
+                if VALIDATE_FILE_EXISTENCE and not _safe_exists(fpath):
+                    fpath = None
+                found[key] = fpath if fpath else MISSING_DATA_VALUE
+
+            # Get metadata for this subject
+            meta = self.get_subject_metadata(subj)
+
+            # Only include if at least one file exists (or include all if you prefer)
+            if any(v != MISSING_DATA_VALUE for v in found.values()):
+                row = {
+                    'subjectId': subj,
+                    'session': sess if sess else MISSING_DATA_VALUE,
+                    'MNI_Warped': found.get('MNI_Warped', MISSING_DATA_VALUE),
+                    'MNI_ZSCORE': found.get('MNI_ZSCORE', MISSING_DATA_VALUE),
+                    'MNI_Z_Cropped': found.get('MNI_Z_Cropped', MISSING_DATA_VALUE),
+                    'age': meta['age'],
+                    'sex': meta['sex_encoded'],
+                    'handedness': meta['handedness_encoded'],
+                }
+                rows.append(row)
+
+        return rows
     
     def process_subject_batch(self, subjects: List[str], modality: str) -> List[Dict]:
         """
-        Process a batch of subjects and generate CSV row data.
+        Legacy method kept for compatibility - now redirects to the new session-oriented approach.
         
         Args:
-            subjects: List of subject IDs to process
+            subjects: List of subject IDs to process (ignored in new implementation)
             modality: Modality type ('T1' or 'T2')
             
         Returns:
             List[Dict]: List of dictionaries, each representing a CSV row
         """
-        csv_data = []
-        
-        # Get file paths for all subjects in this batch (batch processing for efficiency)
-        all_file_paths = self.find_processed_files_batch(subjects, modality)
-        
-        # Process each subject in the batch
-        for subject_id in subjects:
-            # Get subject's demographic information with encoded categorical variables
-            metadata = self.get_subject_metadata(subject_id)
-            file_paths = all_file_paths.get(subject_id, {})
-            
-            # Only include subjects that have at least one processed file for this modality
-            if any(path is not None for path in file_paths.values()):
-                # Create row data following the defined column structure
-                row_data = {
-                    'subjectId': subject_id,
-                    'MNI_Warped': file_paths.get('MNI_Warped', MISSING_DATA_VALUE),
-                    'MNI_ZSCORE': file_paths.get('MNI_ZSCORE', MISSING_DATA_VALUE),
-                    'MNI_Z_Cropped': file_paths.get('MNI_Z_Cropped', MISSING_DATA_VALUE),
-                    'age': metadata['age'],
-                    'sex': metadata['sex_encoded'],
-                    'handedness': metadata['handedness_encoded']
-                }
-                
-                # Replace any None values with the standard missing data indicator
-                for key, value in row_data.items():
-                    if value is None:
-                        row_data[key] = MISSING_DATA_VALUE
-                
-                csv_data.append(row_data)
-        
-        return csv_data
+        # Use the new structure-aware method
+        return self.find_processed_files_general(modality)
     
     def get_subject_metadata(self, subject_id: str) -> Dict[str, str]:
         """
@@ -301,7 +287,7 @@ class CSVMetadataGenerator:
     
     def generate_csv_for_modality(self, modality: str) -> pd.DataFrame:
         """
-        Generate CSV data for a specific modality using optimized batch processing.
+        Generate CSV data for a specific modality using structure-aware discovery.
         
         Args:
             modality: Modality type ('T1' or 'T2')
@@ -310,40 +296,16 @@ class CSVMetadataGenerator:
             pd.DataFrame: Complete CSV data for the specified modality
         """
         start_time = time.time()
-        logger.info(f"Generating CSV for {modality} modality...")
+        logger.info(f"Generating CSV for {modality} modality using structure-aware discovery...")
         
-        # Get list of all subjects
-        subjects = self.get_subject_list()
-        all_csv_data = []
-        
-        # Split subjects into batches for efficient processing
-        batches = [subjects[i:i + self.batch_size] for i in range(0, len(subjects), self.batch_size)]
-        
-        # Use multiprocessing if enabled and beneficial
-        if self.use_multiprocessing and len(batches) > 1:
-            logger.info(f"Using multiprocessing with {self.max_workers} workers, {len(batches)} batches")
-            
-            # Use ThreadPoolExecutor for I/O bound tasks (file system operations)
-            with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
-                batch_processor = partial(self.process_subject_batch, modality=modality)
-                batch_results = list(executor.map(batch_processor, batches))
-                
-                # Flatten results from all batches
-                for batch_data in batch_results:
-                    all_csv_data.extend(batch_data)
-        else:
-            # Process sequentially for small datasets or when multiprocessing is disabled
-            for i, batch in enumerate(batches):
-                if i % 5 == 0:  # Progress update every 5 batches
-                    logger.info(f"Processing batch {i+1}/{len(batches)}...")
-                batch_data = self.process_subject_batch(batch, modality)
-                all_csv_data.extend(batch_data)
+        # Use the new structure-aware method that handles multi-session datasets
+        all_csv_data = self.find_processed_files_general(modality)
         
         # Create final DataFrame with specified column order
         df = pd.DataFrame(all_csv_data, columns=CSV_COLUMNS)
         
         elapsed_time = time.time() - start_time
-        logger.info(f"Generated {modality} CSV with {len(df)} subjects in {elapsed_time:.2f} seconds")
+        logger.info(f"Generated {modality} CSV with {len(df)} rows (subject-sessions) in {elapsed_time:.2f} seconds")
         
         return df
     
@@ -396,8 +358,8 @@ class CSVMetadataGenerator:
         # Print summary of generated files
         logger.info("=" * 50)
         logger.info("CSV Generation Summary:")
-        logger.info(f"T1 CSV: {t1_path} ({len(t1_df)} subjects)")
-        logger.info(f"T2 CSV: {t2_path} ({len(t2_df)} subjects)")
+        logger.info(f"T1 CSV: {t1_path} ({len(t1_df)} rows)")
+        logger.info(f"T2 CSV: {t2_path} ({len(t2_df)} rows)")
         
         return t1_path, t2_path
     
