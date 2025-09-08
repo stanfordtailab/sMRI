@@ -377,7 +377,7 @@ def process_subject(subject_id, session_id, in_base, output_root, qc_root):
         pattern = SKULLSTRIP_T1_FILE_PATTERN if modality == "T1w" else SKULLSTRIP_T2_FILE_PATTERN
         input_candidates = glob.glob(os.path.join(in_base, pattern))
         if not input_candidates:
-            logger.warning(f"No {modality} for { _id} {session_id} under {in_base}")
+            logger.warning(f"No {modality} for {subject_id} {session_id} under {in_base}")
             continue
 
         input_candidates.sort(key=os.path.getmtime, reverse=True)
