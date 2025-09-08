@@ -78,7 +78,7 @@ pip install numpy nibabel SimpleITK matplotlib tqdm templateflow pandas
 
 ## Configuration
 
-All knobs live in **`config.py`**. For public release (privacy-safe), **ship a sanitized template**.
+All configuration is centralized in **`config.py`**.
 
 ### `config.example.py` (safe to commit)
 ```python
