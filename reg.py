@@ -86,8 +86,6 @@ for (subj, sess, base) in triples:
     t2_pattern = os.path.join(base, SKULLSTRIP_T2_FILE_PATTERN.replace(".nii.gz", "_brain.nii.gz"))
     t2_files.extend(glob.glob(t2_pattern))
     
-# Note: cropping is now handled by postprocess_mni_mask_zscore_crop.py
-
 # Set output directory from config
 output_base_dir = STAGE_ROOTS["registration"]
 os.makedirs(output_base_dir, exist_ok=True)
@@ -537,9 +535,7 @@ try:
                 t2_warped_path = os.path.join(subj_dir, f"{t2_base_name}_mni_warped.nii.gz")
                 sitk.WriteImage(final_warped_t2, t2_warped_path)
                 logger.debug(f"Saved final T2 warped image (T2→T1→MNI CompositeTransform) to {t2_warped_path}")
-                
-                # Note: zscore normalization and cropping will be handled by postprocess_mni_mask_zscore_crop.py
-            
+                            
             # Record successful completion (only if no exceptions occurred)
             registration_results['successful_subjects'].append(subj)
             
