@@ -305,14 +305,15 @@ class StructuralQC:
             
             # Update modality-specific data
             modality = row['modality']
-            qc_status = self.assess_brain_volume(row['brain_volume_ml'])
+            qc_status = row['qc_status']  # Use the status from CSV directly
+            brain_volume = row['brain_volume_ml']
             
             if modality == 'T1w':
                 existing_record['T1_SkullStrip_QC'] = qc_status
-                existing_record['T1_Brain_Volume_ml'] = row['brain_volume_ml']
+                existing_record['T1_Brain_Volume_ml'] = brain_volume
             elif modality == 'T2w':
                 existing_record['T2_SkullStrip_QC'] = qc_status
-                existing_record['T2_Brain_Volume_ml'] = row['brain_volume_ml']
+                existing_record['T2_Brain_Volume_ml'] = brain_volume
         
         # Add registration metrics (real Dice coefficients using MNI template)
         for record in summary_data:
@@ -394,7 +395,7 @@ class StructuralQC:
             return {'PASS':'pass','FAIL':'fail','WARNING':'warning','UNKNOWN':'unknown'}.get(s_norm,'unknown')
         
         subject_short = subject.replace('sub-', '')
-        session_short = session.replace('ses-', '')
+        session_short = session.replace('ses-', '') if session else 'no-session'
         
         # Paths to relevant files using configurable folder structure
         if self.has_sessions and session:
