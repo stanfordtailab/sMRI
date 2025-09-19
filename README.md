@@ -46,7 +46,7 @@ Paths and behavior are controlled by **`config.py`** (shared by all scripts). Th
 
 ## Processing Steps
 
-### 1) Brain Extraction — `skullstrip.py`
+### 1) Brain Extraction, `skullstrip.py`
 Removes non‑brain tissue using **SynthStrip**. The script tries **Singularity → Docker → FreeSurfer binary** (in this order). Generates brain, mask, and QC images.
 
 **Inputs**
@@ -67,7 +67,7 @@ python skullstrip.py --subject sub-ON12345
 
 ---
 
-### 2) Registration to MNI (Rigid → Affine) — `reg.py`
+### 2) Registration to MNI (Rigid → Affine), `reg.py`
 Registers **T1w** to **MNI152NLin2009cAsym (1mm)** using **SimpleITK** (Mattes MI; multi‑resolution). Applies the **same transforms** to **T2w** of the same session.
 
 **Method**
@@ -89,7 +89,7 @@ python reg.py --subject sub-ON12345
 
 ---
 
-### 3) Post‑processing — `postprocess_mni_mask_zscore_crop.py`
+### 3) Post‑processing, `postprocess_mni_mask_zscore_crop.py`
 Warp masks to MNI, run **N4 bias correction** (optional), compute **masked Z‑score**, **crop** around the brain, and save a **multi‑slice visualization**.
 
 **Steps**
@@ -115,7 +115,7 @@ python postprocess_mni_mask_zscore_crop.py --subject sub-ON12345
 
 ---
 
-### 4) Quality Control & Reports — `skullstrip.py`, `structural_qc.py`
+### 4) Quality Control & Reports, `skullstrip.py`, `structural_qc.py`
 - `skullstrip.py` writes **per‑subject QC montages** and a global **QC CSV** with brain volume.
 - `structural_qc.py` (optional helpers) can be used for extended validations (e.g., Dice vs reference).
 
@@ -124,7 +124,7 @@ python postprocess_mni_mask_zscore_crop.py --subject sub-ON12345
 
 ---
 
-### 5) CSV Metadata — `generate_csv_metadata.py`
+### 5) CSV Metadata, `generate_csv_metadata.py`
 Scans registration outputs and builds CSVs listing **MNI warped**, **Z‑score**, and **cropped** paths, with optional demographics (`participants.tsv`) and encodings (`sex`, `handedness`).
 
 **Outputs**
