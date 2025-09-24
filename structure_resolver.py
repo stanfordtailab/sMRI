@@ -57,12 +57,15 @@ def discover(structure: str, root: str,
     for subject, session, p in sorted(seen, key=lambda x: (x[0], x[1] or "", x[2])):
         yield subject, session, p
                 
-def make_path(structure: str, root: str, subject: str, session: Optional[str], mkdirs: bool=False) -> str:
-    """Generate output path for a subject/session."""
+def make_path(structure: str, root: str, subject: str, session: Optional[str], modality: Optional[str] = None, mkdirs: bool=False) -> str:
+    """Generate output path for a subject/session/modality."""
     s = structure.replace("{root}", root.rstrip("/")).replace("{subject}", subject)
     if "{session}" in s:
         s = s.replace("{session}", session or "").replace("//", "/")
+    if "{modality}" in s:
+        s = s.replace("{modality}", modality or "").replace("//", "/")
     s = s.rstrip("/")
     if mkdirs:
         os.makedirs(s, exist_ok=True)
     return s
+
