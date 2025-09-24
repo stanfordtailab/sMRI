@@ -452,7 +452,7 @@ def main():
     if args.subject:
         # Handle both formats: ON93426 or sub-ON93426
         subject_id = args.subject.replace('sub-', '')
-        SUBJECTS = [f"sub-{subject_id}"]
+        SUBJECTS = [subject_id]
     
     logger.info("===== Configuration =====")
     logger.info(f"Input Directory: {INPUT_DIR}")
