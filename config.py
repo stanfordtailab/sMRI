@@ -153,7 +153,7 @@ STAGE_ROOTS = {
 #   ADNI:          "{root}/path/to/REDACTED" 
 #   ABCD:          "{root}/path/to/REDACTED"
 #   No sessions:   "{root}/path/to/REDACTED"
-STRUCTURE = "{root}/{subject}/{session}/anat"
+STRUCTURE = "{root}/{modality}/{subject}/{session}/anat"
 
 # Legacy aliases for backward compatibility
 FORCE_REPROCESS = FORCE_REPROCESSING
