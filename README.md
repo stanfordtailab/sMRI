@@ -2,8 +2,8 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17503175.svg)](https://doi.org/10.5281/zenodo.17503175)
 
 Developed at the [Stanford Translational AI Lab (STAI)](https://stai.stanford.edu)  
-**Lead Developer:** Mohammad H. Abbasi  
-**Supervisor:** Ehsan Adeli i  
+Lead Developer: Mohammad H. Abbasi  
+Supervisor: Ehsan Adeli i  
 -----
 A lightweight, end‑to‑end pipeline for **brain extraction**, **registration to MNI**, **post‑processing (N4 + masked Z‑score + cropping)**, **QC visualization**, and **CSV metadata** generation.
 
