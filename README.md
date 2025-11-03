@@ -8,7 +8,7 @@ Developed at the [Stanford Translational AI Lab (STAI)](https://stai.stanford.ed
 -----
 A lightweight, end‑to‑end pipeline for **brain extraction**, **registration to MNI**, **post‑processing (N4 + masked Z‑score + cropping)**, **QC visualization**, and **CSV metadata** generation.
 
-The structure of this README mirrors the DTI project style: **Prerequisites → Configuration → Processing Steps (numbered) → Quick Start → Outputs/QC → Authors/Version**.
+The structure of this README mirrors the DTI project style: **Prerequisites → Configuration → Processing Steps (numbered) → Quick Start → Outputs/QC → Authors/Version/Cite**.
 
 ---
 
