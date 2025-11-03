@@ -1,7 +1,7 @@
-# Structural MRI Processing Pipeline
+# Structural MRI Processing Pipeline**
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17503175.svg)](https://doi.org/10.5281/zenodo.17503175)
 
-Developed at the **Stanford Translational AI Lab (STAI)**  
+Developed at the **Stanford Translational AI Lab (STAI)
 **Lead Developer:** Mohammad H. Abbasi  
 **Supervisor:** Ehsan Adeli  
 -----
