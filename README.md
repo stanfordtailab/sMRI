@@ -1,5 +1,10 @@
 # Structural MRI Processing Pipeline
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17503175.svg)](https://doi.org/10.5281/zenodo.17503175)
 
+Developed at the **Stanford Translational AI Lab (STAI)**  
+**Lead Developer:** Mohammad H. Abbasi  
+**Supervisor:** Ehsan Adeli  
+-----
 A lightweight, end‑to‑end pipeline for **brain extraction**, **registration to MNI**, **post‑processing (N4 + masked Z‑score + cropping)**, **QC visualization**, and **CSV metadata** generation.
 
 The structure of this README mirrors the DTI project style: **Prerequisites → Configuration → Processing Steps (numbered) → Quick Start → Outputs/QC → Authors/Version**.
@@ -188,6 +193,33 @@ python generate_csv_metadata.py
 - **Created**: 2025 &nbsp;|&nbsp; **Version**: 1.0.0
 
 ---
+## Citation (short version)
+
+> Abbasi, M.H., & Adeli, E. (2025). *sMRI Processing Pipeline.* Zenodo.  
+> DOI: [10.5281/zenodo.17503175](https://doi.org/10.5281/zenodo.17503175)
+
+---
+
+## How to Cite This Work
+
+If you use this pipeline in your research, please cite it as follows:
+
+> Abbasi, M.H., & Adeli, E. (2025). *sMRI Processing Pipeline: A lightweight, end-to-end framework for BIDS-compatible structural MRI preprocessing and quality control.*  
+> Stanford Translational AI Lab, Stanford University. *Zenodo.*  
+> [https://doi.org/10.5281/zenodo.17503175](https://doi.org/10.5281/zenodo.17503175)
+
+---
+
+```bibtex
+@software{abbasi2025smri,
+  author       = {Mohammad Hassan Abbasi and Ehsan Adeli},
+  title        = {sMRI Processing Pipeline: A lightweight, end-to-end framework for BIDS-compatible structural MRI preprocessing and quality control},
+  year         = {2025},
+  institution  = {Stanford Translational AI Lab, Stanford University},
+  publisher    = {Zenodo},
+  doi          = {10.5281/zenodo.17503175},
+  url          = {https://doi.org/10.5281/zenodo.17503175}
+}
 
 ## Acknowledgements
 
