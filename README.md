@@ -213,7 +213,7 @@ If you use this pipeline in your research, please cite it as follows:
 ```bibtex
 @software{abbasi2025smri,
   author       = {Mohammad Hassan Abbasi and Ehsan Adeli},
-  title        = {sMRI Processing Pipeline: A lightweight, end-to-end framework for BIDS-compatible structural MRI preprocessing and quality control},
+  title = {{sMRI} Processing Pipeline: A lightweight, end-to-end workflow for structural brain {MRI} preprocessing and quality control},
   year         = {2025},
   institution  = {Stanford Translational AI Lab, Stanford University},
   publisher    = {Zenodo},
