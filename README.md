@@ -191,6 +191,11 @@ python generate_csv_metadata.py
 - **Author**: Mohammad H. Abbasi (mabbasi [at] stanford.edu)  
 - **Lab**: Stanford University, STAI Lab (https://stai.stanford.edu)  
 - **Created**: 2025 &nbsp;|&nbsp; **Version**: 1.0.0
+---
+
+## Acknowledgements
+
+Thanks to the open‑source neuroimaging community (FreeSurfer, TemplateFlow, SimpleITK, nibabel) and dataset providers.
 
 ---
 ## Citation (short version)
@@ -220,9 +225,5 @@ If you use this pipeline in your research, please cite it as follows:
   doi          = {10.5281/zenodo.17503175},
   url          = {https://doi.org/10.5281/zenodo.17503175}
 }
-
-## Acknowledgements
-
-Thanks to the open‑source neuroimaging community (FreeSurfer, TemplateFlow, SimpleITK, nibabel) and dataset providers.
 
 ---
