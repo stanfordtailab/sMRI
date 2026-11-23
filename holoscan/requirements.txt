@@ -1,0 +1,8 @@
+holoscan>=4.0
+nibabel
+SimpleITK
+numpy
+pandas
+matplotlib
+templateflow
+scipy
