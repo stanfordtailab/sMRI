@@ -209,7 +209,7 @@ Thanks to the open‑source neuroimaging community (FreeSurfer, TemplateFlow, Si
 
 If you use this pipeline in your research, please cite it as follows:
 
-> Abbasi, M.H., & Adeli, E. (2025). *sMRI Processing Pipeline: A lightweight, end-to-end framework for BIDS-compatible structural MRI preprocessing and quality control.*  
+> Abbasi, M.H., & Adeli, E. (2025). *sMRI processing pipeline: A lightweight, end-to-end workflow for structural brain MRI preprocessing and quality control.*  
 > Stanford Translational AI Lab, Stanford University. *Zenodo.*  
 > [https://doi.org/10.5281/zenodo.17503175](https://doi.org/10.5281/zenodo.17503175)
 
