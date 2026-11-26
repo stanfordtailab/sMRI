@@ -225,5 +225,10 @@ If you use this pipeline in your research, please cite it as follows:
   doi          = {10.5281/zenodo.17503175},
   url          = {https://doi.org/10.5281/zenodo.17503175}
 }
+```
 
 ---
+
+## License
+
+This project is licensed under the MIT License; see the [LICENSE](LICENSE) file for details.
